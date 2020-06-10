@@ -40,7 +40,6 @@ class OutputLexer(QsciLexerCustom):
         self.bold_font.setItalic(True)
         self.bold_font.setPointSize(base_font_point_size)
 
-
         self.setColor(light_red, 1)
         self.setColor(dark_yellow, 2)
         self.setColor(blue, 3)
@@ -67,15 +66,15 @@ class OutputLexer(QsciLexerCustom):
             if len(line) >= 4 and line[0:4].lower() == "info":
                 print("We've got an info")
                 self.setStyling(4, 6)
-                self.setStyling(len(line)-4, 3)
+                self.setStyling(len(line) - 4, 3)
             elif len(line) >= 5 and line[0:5].lower() == "error":
                 print("We've got an error")
                 self.setStyling(5, 4)
-                self.setStyling(len(line)-5, 1)
+                self.setStyling(len(line) - 5, 1)
             elif len(line) >= 7 and line[0:7].lower() == "warning":
                 print("We've got an warning")
                 self.setStyling(7, 5)
-                self.setStyling(len(line)-7, 2)
+                self.setStyling(len(line) - 7, 2)
             else:
                 self.setStyling(len(line), 0)
 
@@ -242,7 +241,22 @@ class CustomMainWindow(QMainWindow):
         self.output.append("Info: we've added 100 rows in 0.01s\n")
 
         self.layout.addWidget(self.output)
+        self.shift_pressed = False
         self.show()
+
+    # # todo: get enter key to work even when you're in the editor
+    # def keyPressEvent(self, e):
+    #     if e.key() == Qt.Key_Shift:
+    #         shift_pressed = True
+    #         print("Qt.Key_Shift if pressed")
+    #     elif e.key() == Qt.Key_Return:
+    #         print("Qt.Key_Enter if pressed")
+    #         self.run_sql()
+    #
+    # def keyReleaseEvent(self, e):
+    #     if e.key() == Qt.Key_Shift:
+    #         print("Qt.Key_Shift if released")
+    #         shift_pressed = False
 
     ''''''
 
