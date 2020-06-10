@@ -6,98 +6,6 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.Qsci import *
 
-"""
-
-Style number 0 is Default
-Style number 1 is Comment
-Style number 2 is Comment line
-Style number 3 is JavaDoc style comment
-Style number 4 is Number
-Style number 5 is Keyword
-Style number 6 is Double-quoted string
-Style number 7 is Single-quoted string
-Style number 8 is SQL*Plus keyword
-Style number 9 is SQL*Plus prompt
-Style number 10 is Operator
-Style number 11 is Identifier
-Style number 12 is 
-Style number 13 is SQL*Plus comment
-Style number 14 is 
-Style number 15 is # comment line
-Style number 16 is 
-Style number 17 is JavaDoc keyword
-Style number 18 is JavaDoc keyword error
-Style number 19 is User defined 1
-Style number 20 is User defined 2
-Style number 21 is User defined 3
-Style number 22 is User defined 4
-Style number 23 is Quoted identifier
-Style number 24 is Quoted operator
-
-call s:h("Comment", { "fg": s:comment_grey, "gui": "italic", "cterm": "italic" }) " any comment
-call s:h("Constant", { "fg": s:cyan }) " any constant
-call s:h("String", { "fg": s:green }) " a string constant: "this is a string"
-call s:h("Character", { "fg": s:green }) " a character constant: 'c', '\n'
-call s:h("Number", { "fg": s:dark_yellow }) " a number constant: 234, 0xff
-call s:h("Boolean", { "fg": s:dark_yellow }) " a boolean constant: TRUE, false
-call s:h("Float", { "fg": s:dark_yellow }) " a floating point constant: 2.3e10
-call s:h("Identifier", { "fg": s:red }) " any variable name
-call s:h("Function", { "fg": s:blue }) " function name (also: methods for classes)
-call s:h("Statement", { "fg": s:purple }) " any statement
-call s:h("Conditional", { "fg": s:purple }) " if, then, else, endif, switch, etc.
-call s:h("Repeat", { "fg": s:purple }) " for, do, while, etc.
-call s:h("Label", { "fg": s:purple }) " case, default, etc.
-call s:h("Operator", { "fg": s:purple }) " sizeof", "+", "*", etc.
-call s:h("Keyword", { "fg": s:red }) " any other keyword
-call s:h("Exception", { "fg": s:purple }) " try, catch, throw
-call s:h("PreProc", { "fg": s:yellow }) " generic Preprocessor
-call s:h("Include", { "fg": s:blue }) " preprocessor #include
-call s:h("Define", { "fg": s:purple }) " preprocessor #define
-call s:h("Macro", { "fg": s:purple }) " same as Define
-call s:h("PreCondit", { "fg": s:yellow }) " preprocessor #if, #else, #endif, etc.
-call s:h("Type", { "fg": s:yellow }) " int, long, char, etc.
-call s:h("StorageClass", { "fg": s:yellow }) " static, register, volatile, etc.
-call s:h("Structure", { "fg": s:yellow }) " struct, union, enum, etc.
-call s:h("Typedef", { "fg": s:yellow }) " A typedef
-call s:h("Special", { "fg": s:blue }) " any special symbol
-call s:h("SpecialChar", {}) " special character in a constant
-call s:h("Tag", {}) " you can use CTRL-] on this
-call s:h("Delimiter", {}) " character that needs attention
-call s:h("SpecialComment", { "fg": s:comment_grey }) " special things inside a comment
-call s:h("Debug", {}) " debugging statements
-call s:h("Underlined", { "gui": "underline", "cterm": "underline" }) " text that stands out, HTML links
-call s:h("Ignore", {}) " left blank, hidden
-call s:h("Error", { "fg": s:red }) " any erroneous construct
-call s:h("Todo", { "fg": s:purple }) " anything that needs extra attention; mostly the keywords TODO FIXME and XXX
-" +---------------------------------------------+
-" |  Color Name  |         RGB        |   Hex   |
-" |--------------+--------------------+---------|
-" | Black        | rgb(40, 44, 52)    | #282c34 |
-" |--------------+--------------------+---------|
-" | White        | rgb(171, 178, 191) | #abb2bf |
-" |--------------+--------------------+---------|
-" | Light Red    | rgb(224, 108, 117) | #e06c75 |
-" |--------------+--------------------+---------|
-" | Dark Red     | rgb(190, 80, 70)   | #be5046 |
-" |--------------+--------------------+---------|
-" | Green        | rgb(152, 195, 121) | #98c379 |
-" |--------------+--------------------+---------|
-" | Light Yellow | rgb(229, 192, 123) | #e5c07b |
-" |--------------+--------------------+---------|
-" | Dark Yellow  | rgb(209, 154, 102) | #d19a66 |
-" |--------------+--------------------+---------|
-" | Blue         | rgb(97, 175, 239)  | #61afef |
-" |--------------+--------------------+---------|
-" | Magenta      | rgb(198, 120, 221) | #c678dd |
-" |--------------+--------------------+---------|
-" | Cyan         | rgb(86, 182, 194)  | #56b6c2 |
-" |--------------+--------------------+---------|
-" | Gutter Grey  | rgb(76, 82, 99)    | #4b5263 |
-" |--------------+--------------------+---------|
-" | Comment Grey | rgb(92, 99, 112)   | #5c6370 |
-" +---------------------------------------------+
-"""
-
 comment_grey = QColor("#5c6370")
 gutter_grey = QColor("#4b5263")
 cyan = QColor("#56b6c2")
@@ -127,9 +35,21 @@ class OutputLexer(QsciLexerCustom):
         self.default_font.setPointSize(base_font_point_size)
         self.setFont(self.default_font)
 
+        self.bold_font = QFont(font_name_mono)
+        self.bold_font.setBold(True)
+        self.bold_font.setItalic(True)
+        self.bold_font.setPointSize(base_font_point_size)
+
+
         self.setColor(light_red, 1)
         self.setColor(dark_yellow, 2)
         self.setColor(blue, 3)
+        self.setColor(self.color(1), 4)
+        self.setFont(self.bold_font, 4)
+        self.setColor(self.color(2), 5)
+        self.setFont(self.bold_font, 5)
+        self.setColor(self.color(3), 6)
+        self.setFont(self.bold_font, 6)
 
     def styleText(self, start, end):
         # 1. Initialize the styling procedure
@@ -146,13 +66,16 @@ class OutputLexer(QsciLexerCustom):
         for i, line in enumerate(lines):
             if len(line) >= 4 and line[0:4].lower() == "info":
                 print("We've got an info")
-                self.setStyling(len(line), 3)
+                self.setStyling(4, 6)
+                self.setStyling(len(line)-4, 3)
             elif len(line) >= 5 and line[0:5].lower() == "error":
                 print("We've got an error")
-                self.setStyling(len(line), 1)
+                self.setStyling(5, 4)
+                self.setStyling(len(line)-5, 1)
             elif len(line) >= 7 and line[0:7].lower() == "warning":
                 print("We've got an warning")
-                self.setStyling(len(line), 2)
+                self.setStyling(7, 5)
+                self.setStyling(len(line)-7, 2)
             else:
                 self.setStyling(len(line), 0)
 
@@ -168,6 +91,12 @@ class OutputLexer(QsciLexerCustom):
             return "Warning"
         elif style == 3:
             return "Info"
+        elif style == 4:
+            return "Error keyword"
+        elif style == 5:
+            return "Warning Keyword"
+        elif style == 6:
+            return "Info Keyword"
         return ""
 
 
@@ -242,7 +171,7 @@ class CustomMainWindow(QMainWindow):
         self.button_run = QPushButton("Run")
         self.button_run.setFixedWidth(100)
         self.button_run.setFixedHeight(50)
-        self.button_run.clicked.connect(self.__btn_action)
+        self.button_run.clicked.connect(self.run_sql)
         self.button_run.setFont(self.myFontUI)
         self.layout.addWidget(self.button_run)
 
@@ -317,11 +246,10 @@ class CustomMainWindow(QMainWindow):
 
     ''''''
 
-    def __btn_action(self):
-        print("You've pressed the run button, will it run?")
+    def run_sql(self):
+        print("You've pressed the run button/done the key combination, will it run?")
         content = self.editor.text()
         print(content)
-        # print(self.__editor.scrollWidth())
 
     ''''''
 
@@ -332,6 +260,7 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
     myGUI = CustomMainWindow()
+    app.setWindowIcon(QIcon('miniSQL.png'))
     sys.exit(app.exec_())
 
 ''''''
