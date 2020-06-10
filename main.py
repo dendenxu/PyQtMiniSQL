@@ -213,6 +213,25 @@ class CustomMainWindow(QMainWindow):
         # QScintilla editor setup
         # ------------------------
 
+        self.api = QsciAPIs(self.lexer)
+        # The moment you create the object, you plug it into the lexer immediately.
+        # That's why you pass it your lexer as a parameter.
+        autocompletions = [
+            "select",
+            "show",
+            "index",
+            "delete",
+            "drop",
+            "from",
+            "where",
+            "tables",
+            "table",
+            "create",
+        ]
+        for ac in autocompletions:
+            self.api.add(ac)
+        self.api.prepare()
+
         # ! Make instance of QsciScintilla class!
         self.editor = QsciScintilla()
         self.editor.setUtf8(True)  # Set encoding to UTF-8
@@ -223,11 +242,14 @@ class CustomMainWindow(QMainWindow):
         self.editor.setMarginType(0, QsciScintilla.NumberMargin)
         self.editor.setMarginWidth(0, "000")
         self.editor.setMarginsFont(self.myFontMono)
-        self.editor.setScrollWidth(10)  # I'd like to set this to 0, however it doesn't work
+        self.editor.setScrollWidth(1)  # I'd like to set this to 0, however it doesn't work
         self.editor.setScrollWidthTracking(True)
         # self.editor.setCaretLineBackgroundColor(black.lighter())
         self.editor.setCaretForegroundColor(white)
         self.editor.setCaretWidth(3)
+        self.editor.setAutoCompletionSource(QsciScintilla.AcsAll)
+        # self.editor.autoCompleteFromAll()
+        self.editor.setAutoCompletionThreshold(1)
         # ! Add editor to layout !
         self.layout.addWidget(self.editor)
 
