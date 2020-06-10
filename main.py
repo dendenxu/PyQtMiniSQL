@@ -1,4 +1,4 @@
-import re
+import os
 import sys
 import qdarkstyle
 from PyQt5.QtWidgets import *
@@ -19,7 +19,7 @@ light_red = QColor("#e06c75")
 white = QColor("#abb2bf")
 black = QColor("#282c34")
 purple = QColor("#d55fdd")
-font_name = "Ubuntu"
+font_name_ui = "Ubuntu"
 font_name_mono = "UbuntuMono Nerd Font"
 base_font_point_size = 14
 
@@ -60,8 +60,8 @@ class OutputLexer(QsciLexerCustom):
         text = self.parent().text()[start:end]
 
         lines = text.split("\n")  # split by line
-        print(lines)
-        print(repr(text))
+        # print(lines)
+        # print(repr(text))
         for i, line in enumerate(lines):
             if len(line) >= 4 and line[0:4].lower() == "info":
                 print("We've got an info")
@@ -148,7 +148,7 @@ class CustomMainWindow(QMainWindow):
         # --------------
 
         # 1. Define the geometry of the main window
-        init_geometry = (300, 300, 800, 300)
+        init_geometry = (300, 300, 800, 400)
 
         self.setGeometry(*init_geometry)
         self.setWindowTitle("miniSQL GUI")
@@ -164,16 +164,27 @@ class CustomMainWindow(QMainWindow):
         self.myFontMono.setFamily(font_name_mono)
         self.myFontUI = QFont()
         self.myFontUI.setPointSize(base_font_point_size)
-        self.myFontUI.setFamily(font_name)
+        self.myFontUI.setFamily(font_name_ui)
 
         # 3. Place a button
+        self.hbox = QHBoxLayout()
+        self.hbox.addStretch(1)
+
         self.button_run = QPushButton("Run")
-        self.button_run.setFixedWidth(100)
-        self.button_run.setFixedHeight(50)
+        self.button_run.setFixedWidth(80)
+        self.button_run.setFixedHeight(40)
         self.button_run.clicked.connect(self.run_sql)
         self.button_run.setFont(self.myFontUI)
-        self.layout.addWidget(self.button_run)
+        self.hbox.addWidget(self.button_run)
 
+        self.button_run = QPushButton("Quit")
+        self.button_run.setFixedWidth(80)
+        self.button_run.setFixedHeight(40)
+        self.button_run.clicked.connect(self.exit_sql)
+        self.button_run.setFont(self.myFontUI)
+        self.hbox.addWidget(self.button_run)
+
+        self.layout.addLayout(self.hbox)
         # QScintilla editor setup
         # ------------------------
 
@@ -184,7 +195,7 @@ class CustomMainWindow(QMainWindow):
         self.api = QsciAPIs(self.sql_lexer)
         # The moment you create the object, you plug it into the lexer immediately.
         # That's why you pass it your lexer as a parameter.
-        autocompletions = [
+        auto_completions = [
             "select",
             "show",
             "index",
@@ -196,50 +207,35 @@ class CustomMainWindow(QMainWindow):
             "table",
             "create",
         ]
-        for ac in autocompletions:
+        for ac in auto_completions:
             self.api.add(ac)
         self.api.prepare()
 
-        self.editor.setUtf8(True)  # Set encoding to UTF-8
-        self.editor.setFont(self.myFontUI)  # Will be overridden by lexer!
         self.editor.setLexer(self.sql_lexer)
-        self.editor.setMarginsBackgroundColor(black.darker(120))
-        self.editor.setMarginsForegroundColor(white.darker(120))
-        self.editor.setMarginType(0, QsciScintilla.NumberMargin)
-        self.editor.setMarginWidth(0, "000")
-        self.editor.setMarginsFont(self.myFontMono)
-        self.editor.setScrollWidth(1)  # I'd like to set this to 0, however it doesn't work
-        self.editor.setScrollWidthTracking(True)
-        self.editor.setCaretForegroundColor(white)
-        self.editor.setCaretWidth(3)
+
         self.editor.setAutoCompletionSource(QsciScintilla.AcsAll)
         self.editor.setAutoCompletionThreshold(1)
-        self.editor.setSelectionBackgroundColor(black.lighter())
-        self.editor.resetSelectionForegroundColor()  # don't change foreground color of selection
+        self.setupEditorStyle(self.editor)
         # ! Add editor to layout !
         self.layout.addWidget(self.editor)
 
         self.output = QsciScintilla()
         self.out_lexer = OutputLexer(self.output)
-        self.output.setReadOnly(True)
-        self.output.setUtf8(True)  # Set encoding to UTF-8
-        self.output.setFont(self.myFontUI)  # Will be overridden by lexer!
-        # todo: set error lexer
         self.output.setLexer(self.out_lexer)
-        self.output.setMarginsBackgroundColor(black.darker(120))
-        self.output.setMarginsForegroundColor(white.darker(120))
-        self.output.setMarginType(0, QsciScintilla.NumberMargin)
-        self.output.setMarginWidth(0, "000")
-        self.output.setMarginsFont(self.myFontMono)
-        self.output.setScrollWidth(1)  # I'd like to set this to 0, however it doesn't work
-        self.output.setScrollWidthTracking(True)
-        self.output.setCaretForegroundColor(white)
-        self.output.setCaretWidth(3)
-        self.output.setText("This is the output window\n")
+
+
+        self.output.setReadOnly(True)
+        self.output.setText(
+            "Welcome to miniSQL GUI!\nThis is the output window\nThe editor above is where you input SQL queries, you'll find some interesting keyboard shortcuts there\n")
+        """
+        some interesting keyboard shortcuts would include fancy stuff
+        like multiline editing: Alt + Shift + Arrow
+        and line deletion: Ctrl + L
+        """
         self.output.append("Error: table table_name is not found\n")
         self.output.append("Warning: key is duplicated and we're replacing it\n")
-        self.output.append("Info: we've added 100 rows in 0.01s\n")
-
+        self.output.append("Info: we've added 100 rows in 0.01s")
+        self.setupEditorStyle(self.output)
         self.layout.addWidget(self.output)
 
         # self.commands = self.editor.standardCommands()
@@ -249,15 +245,41 @@ class CustomMainWindow(QMainWindow):
         #     command.setKey(0)  # clear the default
         self.run_sql_key_comb = QShortcut(Qt.ControlModifier | Qt.Key_R, self)
         self.run_sql_key_comb.activated.connect(self.run_sql)
-
+        self.exit_sql_key_comb = QShortcut(Qt.ControlModifier | Qt.Key_Q, self)
+        self.exit_sql_key_comb.activated.connect(self.exit_sql)
+        self.editor.setFocus()
         self.show()
+
+    def setupEditorStyle(self, editor):
+        editor.setUtf8(True)  # Set encoding to UTF-8
+        editor.setFont(self.myFontUI)  # Will be overridden by lexer!
+        editor.setMarginsBackgroundColor(black.darker(120))
+        editor.setMarginsForegroundColor(white.darker(120))
+        editor.setMarginType(0, QsciScintilla.NumberMargin)
+        editor.setMarginWidth(0, "000")
+        editor.setMarginsFont(self.myFontMono)
+        editor.setScrollWidth(1)  # I'd like to set this to 0, however it doesn't work
+        editor.setScrollWidthTracking(True)
+        editor.setCaretForegroundColor(white)
+        editor.setCaretWidth(3)
+        editor.setSelectionBackgroundColor(black.lighter())
+        editor.resetSelectionForegroundColor()  # don't change foreground color of selection
+        editor.setWrapMode(QsciScintilla.WrapWord)
+        editor.setWrapVisualFlags(QsciScintilla.WrapFlagByText)
+        editor.setWrapIndentMode(QsciScintilla.WrapIndentSame)
 
     ''''''
 
     def run_sql(self):
         print("You've pressed the run button/done the key combination, will it run?")
         content = self.editor.text()
+        # todo: actually run the command
         print(content)
+
+    def exit_sql(self):
+        print("You've decided to leave right?")
+        # todo: call miniSQL stuff to finish up
+        self.close()
 
     ''''''
 
@@ -267,8 +289,13 @@ class CustomMainWindow(QMainWindow):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
+    font_db = QFontDatabase()
+    for font_name in os.listdir("fonts"):
+        print(font_name)
+        print(os.path.abspath(font_name))
+        font_db.addApplicationFont(os.path.abspath(font_name))
     myGUI = CustomMainWindow()
-    app.setWindowIcon(QIcon('miniSQL.png'))
+    app.setWindowIcon(QIcon(':/figures/miniSQL.png'))
     sys.exit(app.exec_())
 
 ''''''
