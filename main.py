@@ -288,12 +288,13 @@ class CustomMainWindow(QMainWindow):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
+    style_sheet = qdarkstyle.load_stylesheet(qt_api='pyqt5')
+    print(style_sheet)
+    app.setStyleSheet(style_sheet)
     font_db = QFontDatabase()
     for font_name in os.listdir("fonts"):
-        print(font_name)
-        print(os.path.abspath(font_name))
-        font_db.addApplicationFont(os.path.abspath(font_name))
+        font_id = font_db.addApplicationFont(os.path.abspath(font_name))
+        families = font_db.applicationFontFamilies(font_id)
     myGUI = CustomMainWindow()
     app.setWindowIcon(QIcon(':/figures/miniSQL.png'))
     sys.exit(app.exec_())
