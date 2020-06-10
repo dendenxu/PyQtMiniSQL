@@ -241,22 +241,16 @@ class CustomMainWindow(QMainWindow):
         self.output.append("Info: we've added 100 rows in 0.01s\n")
 
         self.layout.addWidget(self.output)
-        self.shift_pressed = False
-        self.show()
 
-    # # todo: get enter key to work even when you're in the editor
-    # def keyPressEvent(self, e):
-    #     if e.key() == Qt.Key_Shift:
-    #         shift_pressed = True
-    #         print("Qt.Key_Shift if pressed")
-    #     elif e.key() == Qt.Key_Return:
-    #         print("Qt.Key_Enter if pressed")
-    #         self.run_sql()
-    #
-    # def keyReleaseEvent(self, e):
-    #     if e.key() == Qt.Key_Shift:
-    #         print("Qt.Key_Shift if released")
-    #         shift_pressed = False
+        # self.commands = self.editor.standardCommands()
+        # command = self.commands.boundTo(Qt.ControlModifier | Qt.Key_R)
+        # if command is not None:
+        #     print(command)
+        #     command.setKey(0)  # clear the default
+        self.run_sql_key_comb = QShortcut(Qt.ControlModifier | Qt.Key_R, self)
+        self.run_sql_key_comb.activated.connect(self.run_sql)
+
+        self.show()
 
     ''''''
 
