@@ -1,3 +1,4 @@
+import re
 import sys
 import qdarkstyle
 from PyQt5.QtWidgets import *
@@ -115,9 +116,64 @@ font_name_mono = "UbuntuMono Nerd Font"
 base_font_point_size = 14
 
 
+class OutputLexer(QsciLexerCustom):
+    def __init__(self, parent):
+        super(OutputLexer, self).__init__(parent)
+        self.setDefaultColor(white)
+        self.setDefaultPaper(black)
+        self.default_font = QFont(font_name_mono)
+        self.default_font.setItalic(False)
+        self.default_font.setBold(False)
+        self.default_font.setPointSize(base_font_point_size)
+        self.setFont(self.default_font)
+
+        self.setColor(light_red, 1)
+        self.setColor(dark_yellow, 2)
+        self.setColor(blue, 3)
+
+    def styleText(self, start, end):
+        # 1. Initialize the styling procedure
+        # ------------------------------------
+        self.startStyling(start)
+
+        # 2. Slice out a part from the text
+        # ----------------------------------
+        text = self.parent().text()[start:end]
+
+        lines = text.split("\n")  # split by line
+        print(lines)
+        print(repr(text))
+        for i, line in enumerate(lines):
+            if len(line) >= 4 and line[0:4].lower() == "info":
+                print("We've got an info")
+                self.setStyling(len(line), 3)
+            elif len(line) >= 5 and line[0:5].lower() == "error":
+                print("We've got an error")
+                self.setStyling(len(line), 1)
+            elif len(line) >= 7 and line[0:7].lower() == "warning":
+                print("We've got an warning")
+                self.setStyling(len(line), 2)
+            else:
+                self.setStyling(len(line), 0)
+
+            if i != len(lines) - 1:
+                self.setStyling(1, 0)
+
+    def description(self, style):
+        if style == 0:
+            return "Default"
+        elif style == 1:
+            return "Error"
+        elif style == 2:
+            return "Warning"
+        elif style == 3:
+            return "Info"
+        return ""
+
+
 class MiniSQLLexer(QsciLexerSQL):
-    def __init__(self):
-        super(MiniSQLLexer, self).__init__()
+    def __init__(self, parent):
+        super(MiniSQLLexer, self).__init__(parent)
 
         self.setDefaultColor(white)
         self.setDefaultPaper(black)
@@ -127,18 +183,7 @@ class MiniSQLLexer(QsciLexerSQL):
         self.default_font.setPointSize(base_font_point_size)
         self.setDefaultFont(self.default_font)
         self.setFont(self.default_font)
-        # for i in range(25):
-        #     color_change = 200
-        #     print("Style number {} is {}".format(i, self.description(i)))
-        #     if self.check_dark(self.color(i)):
-        #         print("The color is a little bit darker, we'll lighten it.")
-        #         print("Original color is {}, the lighter color should be {}.".format(
-        #             self.color(i).name(),
-        #             self.color(i).lighter(
-        #                 color_change).name()))
-        #         self.setColor(self.color(i).lighter(color_change), i)
-        #     else:
-        #         print("The color looks fine.")
+
         self.setColor(white, 0)
         self.comment_font = QFont(font_name_mono)
         self.comment_font.setPointSize(base_font_point_size * 0.9)
@@ -165,12 +210,6 @@ class MiniSQLLexer(QsciLexerSQL):
         self.setColor(magenta, 3)
         self.setColor(comment_grey, 15)
         self.setColor(comment_grey, 13)
-
-    # def check_dark(self, color: QColor):
-    #     if color.red() >= 128 or color.green() >= 128 or color.blue() >= 128:
-    #         return False
-    #     else:
-    #         return True
 
 
 class CustomMainWindow(QMainWindow):
@@ -207,13 +246,14 @@ class CustomMainWindow(QMainWindow):
         self.button_run.setFont(self.myFontUI)
         self.layout.addWidget(self.button_run)
 
-        # adding the SQL lexer to the editor
-        self.lexer = MiniSQLLexer()
-        # self.lexer.setFont(self.myFontMono)
         # QScintilla editor setup
         # ------------------------
 
-        self.api = QsciAPIs(self.lexer)
+        # ! Make instance of QsciScintilla class!
+        self.editor = QsciScintilla()
+        # adding the SQL lexer to the editor
+        self.sql_lexer = MiniSQLLexer(self.editor)
+        self.api = QsciAPIs(self.sql_lexer)
         # The moment you create the object, you plug it into the lexer immediately.
         # That's why you pass it your lexer as a parameter.
         autocompletions = [
@@ -232,11 +272,9 @@ class CustomMainWindow(QMainWindow):
             self.api.add(ac)
         self.api.prepare()
 
-        # ! Make instance of QsciScintilla class!
-        self.editor = QsciScintilla()
         self.editor.setUtf8(True)  # Set encoding to UTF-8
         self.editor.setFont(self.myFontUI)  # Will be overridden by lexer!
-        self.editor.setLexer(self.lexer)
+        self.editor.setLexer(self.sql_lexer)
         self.editor.setMarginsBackgroundColor(black.darker(120))
         self.editor.setMarginsForegroundColor(white.darker(120))
         self.editor.setMarginType(0, QsciScintilla.NumberMargin)
@@ -244,15 +282,37 @@ class CustomMainWindow(QMainWindow):
         self.editor.setMarginsFont(self.myFontMono)
         self.editor.setScrollWidth(1)  # I'd like to set this to 0, however it doesn't work
         self.editor.setScrollWidthTracking(True)
-        # self.editor.setCaretLineBackgroundColor(black.lighter())
         self.editor.setCaretForegroundColor(white)
         self.editor.setCaretWidth(3)
         self.editor.setAutoCompletionSource(QsciScintilla.AcsAll)
-        # self.editor.autoCompleteFromAll()
         self.editor.setAutoCompletionThreshold(1)
+        self.editor.setSelectionBackgroundColor(black.lighter())
+        self.editor.resetSelectionForegroundColor()  # don't change foreground color of selection
         # ! Add editor to layout !
         self.layout.addWidget(self.editor)
 
+        self.output = QsciScintilla()
+        self.out_lexer = OutputLexer(self.output)
+        self.output.setReadOnly(True)
+        self.output.setUtf8(True)  # Set encoding to UTF-8
+        self.output.setFont(self.myFontUI)  # Will be overridden by lexer!
+        # todo: set error lexer
+        self.output.setLexer(self.out_lexer)
+        self.output.setMarginsBackgroundColor(black.darker(120))
+        self.output.setMarginsForegroundColor(white.darker(120))
+        self.output.setMarginType(0, QsciScintilla.NumberMargin)
+        self.output.setMarginWidth(0, "000")
+        self.output.setMarginsFont(self.myFontMono)
+        self.output.setScrollWidth(1)  # I'd like to set this to 0, however it doesn't work
+        self.output.setScrollWidthTracking(True)
+        self.output.setCaretForegroundColor(white)
+        self.output.setCaretWidth(3)
+        self.output.setText("This is the output window\n")
+        self.output.append("Error: table table_name is not found\n")
+        self.output.append("Warning: key is duplicated and we're replacing it\n")
+        self.output.append("Info: we've added 100 rows in 0.01s\n")
+
+        self.layout.addWidget(self.output)
         self.show()
 
     ''''''
