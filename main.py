@@ -289,7 +289,7 @@ class CustomMainWindow(QMainWindow):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     font_db = QFontDatabase()
-    font_name_list = os.listdir("fonts")
+    font_name_list = os.listdir("font")
 
     for font_name in font_name_list:
         if font_name.endswith("ttf") or font_name.endswith("otf") or font_name.endswith("ttc"):
@@ -300,7 +300,7 @@ if __name__ == '__main__':
                 font_id = font_db.addApplicationFontFromData(font_data)
                 families = font_db.applicationFontFamilies(font_id)
     # todo: change to svg icon
-    app.setWindowIcon(QIcon('figures/miniSQL.png'))
+    app.setWindowIcon(QIcon('figure/miniSQL.png'))
     style_sheet = qdarkstyle.load_stylesheet(qt_api='pyqt5')
     app.setStyleSheet(style_sheet)
     myGUI = CustomMainWindow()
