@@ -288,15 +288,21 @@ class CustomMainWindow(QMainWindow):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    style_sheet = qdarkstyle.load_stylesheet(qt_api='pyqt5')
-    print(style_sheet)
-    app.setStyleSheet(style_sheet)
     font_db = QFontDatabase()
     for font_name in os.listdir("fonts"):
-        font_id = font_db.addApplicationFont(os.path.abspath(font_name))
-        families = font_db.applicationFontFamilies(font_id)
-    myGUI = CustomMainWindow()
+        # todo: why the fonts aren't successfully loaded?
+        # and why is it working when I load them manually?
+        font_full_rel_name = "fonts/"+font_name
+        font_stream = QFile(font_full_rel_name)
+        if font_stream.open(QFile.ReadOnly):
+            font_data = font_stream.readAll()
+            font_id = font_db.addApplicationFontFromData(font_data)
+            families = font_db.applicationFontFamilies(font_id)
+    # todo: change to svg icon
     app.setWindowIcon(QIcon(':/figures/miniSQL.png'))
+    style_sheet = qdarkstyle.load_stylesheet(qt_api='pyqt5')
+    app.setStyleSheet(style_sheet)
+    myGUI = CustomMainWindow()
     sys.exit(app.exec_())
 
 ''''''
