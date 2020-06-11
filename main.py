@@ -293,7 +293,7 @@ if __name__ == '__main__':
 
     for font_name in font_name_list:
         if font_name.endswith("ttf") or font_name.endswith("otf") or font_name.endswith("ttc"):
-            font_full_name = "fonts/"+font_name
+            font_full_name = "font/"+font_name
             font_stream = QFile(font_full_name)
             if font_stream.open(QFile.ReadOnly):
                 font_data = font_stream.readAll()
